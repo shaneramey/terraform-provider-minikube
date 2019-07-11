@@ -31,6 +31,6 @@ mac:
 	rm "${BINARY}"
 
 stage:
-	mkdir "${RELEASE_DIR}"
+	mkdir -p "${RELEASE_DIR}"
 	mv "${LINUX_RELEASE}.zip" "${RELEASE_DIR}"
 	mv "${MAC_RELEASE}.zip" "${RELEASE_DIR}"
