@@ -24,9 +24,10 @@ import (
 	"k8s.io/minikube/pkg/minikube/constants"
 	"k8s.io/minikube/pkg/minikube/machine"
 	pkgutil "k8s.io/minikube/pkg/util"
-	"k8s.io/minikube/pkg/util/kubeconfig"
 	"k8s.io/minikube/pkg/version"
 )
+
+const clusterNotRunningStatusFlag  = 1 << 1
 
 var (
 	clusterBootstrapper string = "kubeadm"
@@ -143,8 +144,8 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 			},
 			"iso_url": {
 				Type:        schema.TypeString,
-				Description: "Location of the minikube iso (default \"https://storage.googleapis.com/minikube/iso/minikube-v0.23.5.iso\")",
-				Default:     "https://storage.googleapis.com/minikube/iso/minikube-v0.23.5.iso",
+				Description: "Location of the minikube iso (default \"https://storage.googleapis.com/minikube/iso/minikube-v1.2.0.iso\")",
+				Default:     "https://storage.googleapis.com/minikube/iso/minikube-v1.2.0.iso",
 				ForceNew:    true,
 				Optional:    true,
 			},
@@ -158,8 +159,8 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 			"kubernetes_version": {
 				Type: schema.TypeString,
 				Description: `The kubernetes version that the minikube VM will use (ex: v1.2.3)
- OR a URI which contains a localkube binary (ex: https://storage.googleapis.com/minikube/k8sReleases/v1.3.0/localkube-linux-amd64) (default "v1.7.5")`,
-				Default:  "v1.7.5",
+ OR a URI which contains a localkube binary (ex: https://storage.googleapis.com/minikube/k8sReleases/v1.3.0/localkube-linux-amd64) (default "v1.14.3")`,
+				Default:  "v1.14.3",
 				ForceNew: true,
 				Optional: true,
 			},
@@ -251,32 +252,49 @@ func resourceMinikubeRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	defer api.Close()
 
-	ms, err := cluster.GetHostStatus(api)
+	hostSt, err := cluster.GetHostStatus(api)
 	if err != nil {
-		log.Printf("Error getting machine status: %v", err)
+		log.Printf("Error getting host status: %v", err)
 		return err
 	}
 
-	cs := state.None.String()
-	ks := state.None.String()
-	if ms == state.Running.String() {
+	kubeletSt := state.None.String()
+	apiserverSt := state.None.String()
+ 	ks := state.None.String()
+	if hostSt == state.Running.String() {
 		clusterBootstrapper, err := cmd.GetClusterBootstrapper(api, clusterBootstrapper)
 		if err != nil {
 			log.Printf("Error getting cluster bootstrapper: %s", err)
 			return err
 		}
-		cs, err = clusterBootstrapper.GetClusterStatus()
+		kubeletSt, err = clusterBootstrapper.GetKubeletStatus()
 		if err != nil {
-			log.Printf("Error cluster status: %v", err)
+			log.Printf("Error kubelet status: %v", err)
 			return err
 		}
 
-		ip, err := cluster.GetHostDriverIP(api)
+		ip, err := cluster.GetHostDriverIP(api, cfg.GetMachineName())
 		if err != nil {
 			log.Printf("Error host driver ip status: %v", err)
 			return err
 		}
-		kstatus, err := kubeconfig.GetKubeConfigStatus(ip, cmdUtil.GetKubeConfigPath(), cfg.GetMachineName())
+
+		apiserverPort, err := pkgutil.GetPortFromKubeConfig(cmdUtil.GetKubeConfigPath(), cfg.GetMachineName())
+		if err != nil {
+			// Fallback to presuming default apiserver port
+			apiserverPort = pkgutil.APIServerPort
+		}
+
+		apiserverSt, err = clusterBootstrapper.GetAPIServerStatus(ip, apiserverPort)
+		returnCode := 0
+		if err != nil {
+			log.Printf("Error api-server status: %v", err)
+			return err
+		} else if apiserverSt != state.Running.String() {
+			returnCode |= clusterNotRunningStatusFlag
+		}
+
+		kstatus, err := pkgutil.GetKubeConfigStatus(ip, cmdUtil.GetKubeConfigPath(), cfg.GetMachineName())
 		if err != nil {
 			log.Printf("Error kubeconfig status: %v", err)
 			return err
@@ -289,7 +307,12 @@ func resourceMinikubeRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	status := cmd.Status{ms, cs, ks}
+	status := cmd.Status{
+		Host:       hostSt,
+		Kubelet:    kubeletSt,
+		APIServer:  apiserverSt,
+		Kubeconfig: ks,
+	}
 	log.Printf("Result: %v", status)
 
 	return nil
@@ -336,7 +359,7 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 	k8sVersion := kubernetesVersion
 
 	if cacheImages {
-		go machine.CacheImagesForBootstrapper(k8sVersion, clusterBootstrapper)
+		go machine.CacheImagesForBootstrapper(k8sVersion, clusterBootstrapper, profile)
 	}
 	api, err := machine.NewAPIClient()
 	if err != nil {
@@ -474,7 +497,7 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Println("Setting up kubeconfig...")
 	kubeConfigFile := cmdutil.GetKubeConfigPath()
-	kubeCfgSetup := &kubeconfig.KubeConfigSetup{
+	kubeCfgSetup := &pkgutil.KubeConfigSetup{
 		ClusterName:          cfg.GetMachineName(),
 		ClusterServerAddress: kubeHost,
 		ClientCertificate:    constants.MakeMiniPath("client.crt"),
@@ -484,7 +507,7 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	kubeCfgSetup.SetKubeConfigFile(kubeConfigFile)
 
-	if err := kubeconfig.SetupKubeConfig(kubeCfgSetup); err != nil {
+	if err := pkgutil.SetupKubeConfig(kubeCfgSetup); err != nil {
 		log.Printf("Error setting up kubeconfig: %v", err)
 		return err
 	}

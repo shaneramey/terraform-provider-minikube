@@ -10,17 +10,17 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/cpuguy83/go-md2man v1.0.4
 	github.com/davecgh/go-spew v1.1.1
-	github.com/docker/docker v0.0.0-20180917213351-bbe08dc7f0b9
+	github.com/docker/docker v1.13.1
 	github.com/docker/go-units v0.0.0-20170127094116-9e638d38cf69
-	github.com/docker/machine v0.0.0-20180713195525-19035310d4ba
+	github.com/docker/machine v0.16.1
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.2.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20180513044358-24b0969c4cb7
 	github.com/golang/protobuf v1.3.0
-	github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c
-	github.com/google/go-containerregistry v0.0.0-20180815195620-3165313d6d3f
+	github.com/google/btree v1.0.0
+	github.com/google/go-containerregistry v0.0.0-20190318164241-019cdfc6adf9
 	github.com/google/gofuzz v0.0.0-20161122191042-44d81051d367
 	github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7
@@ -38,7 +38,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0
 	github.com/jen20/awspolicyequivalence v1.0.0 // indirect
 	github.com/jimmidyson/go-download v0.0.0-20161028105827-7f9a90c8c95b
-	github.com/johanneswuerbach/nfsexports v0.0.0-20151229182559-a9068f3f0daa
+	github.com/johanneswuerbach/nfsexports v0.0.0-20181204082207-1aa528dcb345
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62 // indirect
 	github.com/json-iterator/go v1.1.5
 	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/ryanuber/columnize v2.1.0+incompatible // indirect
 	github.com/samalba/dockerclient v0.0.0-20160414174713-91d7393ff859
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95
-	github.com/sirupsen/logrus v1.1.1
+	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/afero v1.2.1
 	github.com/spf13/cast v0.0.0-20160730092037-e31f36ffc91a
 	github.com/spf13/cobra v0.0.0-20180228053838-6644d46b81fa
@@ -84,10 +84,10 @@ require (
 	github.com/xeipuuv/gojsonschema v0.0.0-20160623135812-c539bca196be
 	github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6 // indirect
 	github.com/zchee/go-vmnet v0.0.0-20161021174912-97ebf9174097
-	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
+	golang.org/x/crypto v0.0.0-20190506204251-e1dfcc566284
 	golang.org/x/net v0.0.0-20190502183928-7f726cade0ab
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82
+	golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	gopkg.in/cheggaaa/pb.v1 v1.0.27
@@ -99,5 +99,5 @@ require (
 	k8s.io/client-go v0.0.0-20180806134042-1f13a808da65
 	k8s.io/kube-openapi v0.0.0-20180216212618-50ae88d24ede
 	k8s.io/kubernetes v1.11.3
-	k8s.io/minikube v0.30.0
+	k8s.io/minikube v1.2.0
 )

@@ -4,7 +4,7 @@ GOARCH?=amd64
 BINARY=terraform-provider-minikube_${RELEASE_VERSION}_x4
 LINUX_RELEASE=terraform-provider-minikube_${RELEASE_VERSION}_linux_${GOARCH}
 MAC_RELEASE=terraform-provider-minikube_${RELEASE_VERSION}_darwin_${GOARCH}
-MINIKUBE_VERSION=v0.30.0
+MINIKUBE_VERSION=v1.2.0
 
 default: deps assets_hack linux mac stage
 
