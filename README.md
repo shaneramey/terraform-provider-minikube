@@ -42,10 +42,3 @@ cd example
 terraform plan
 ```
 
-If you get an error like `.../vm_assets.go:153:19: undefined: Asset`, run:
-```
-cd $GOPATH/pkg/mod/k8s.io/minikube\@v1.2.0/ # or vendor/k8s.io/minikube/pkg/minikube/
-go-bindata -nomemcopy -o pkg/minikube/assets/assets.go -pkg assets deploy/addons/...
-cd -
-go build -o example/plugins/terraform-provider-minikube
-```

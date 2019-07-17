@@ -14,7 +14,10 @@ deps:
 assets_hack:
 	chmod -R 777 ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}
 	go get -u github.com/jteeuwen/go-bindata/...
-	go-bindata -nomemcopy -o ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/pkg/minikube/assets/assets.go -pkg assets ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/deploy/addons/...
+	go-bindata -nomemcopy \
+		-prefix "${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/" \
+		-o ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/pkg/minikube/assets/assets.go \
+		-pkg assets ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/deploy/addons/...
 
 clean:
 	rm -rf "${RELEASE_DIR}"
