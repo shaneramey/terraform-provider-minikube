@@ -1,6 +1,7 @@
 package minikube
 
 import (
+	b64 "encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,15 +12,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	b64 "encoding/base64"
 
 	"github.com/blang/semver"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/docker/machine/libmachine/state"
+	"github.com/hashicorp/terraform/helper/schema"
 	"k8s.io/minikube/cmd/minikube/cmd"
+	cmdUtil "k8s.io/minikube/cmd/util"
 	cmdutil "k8s.io/minikube/cmd/util"
 	"k8s.io/minikube/pkg/minikube/cluster"
-	cmdUtil "k8s.io/minikube/cmd/util"
 	cfg "k8s.io/minikube/pkg/minikube/config"
 	"k8s.io/minikube/pkg/minikube/constants"
 	"k8s.io/minikube/pkg/minikube/machine"
@@ -27,11 +27,11 @@ import (
 	"k8s.io/minikube/pkg/version"
 )
 
-const clusterNotRunningStatusFlag  = 1 << 1
+const clusterNotRunningStatusFlag = 1 << 1
 
 var (
 	clusterBootstrapper string = "kubeadm"
-	profile string = "minikube"
+	profile             string = "minikube"
 )
 
 func resourceMinikube() *schema.Resource {
@@ -41,70 +41,70 @@ func resourceMinikube() *schema.Resource {
 		Delete: resourceMinikubeDelete,
 
 		Schema: map[string]*schema.Schema{
-			"apiserver_name": {
+			"apiserver_name": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The apiserver name which is used in the generated certificate for localkube/kubernetes.  This can be used if you want to make the apiserver available from outside the machine (default \"minikubeCA\")",
 				Default:     "minikubeCA",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"cache_images": {
+			"cache_images": &schema.Schema{
 				Type:        schema.TypeBool,
 				Description: "If true, cache docker images for the current bootstrapper and load them into the machine. (default true)",
 				Default:     true,
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"container_runtime": {
+			"container_runtime": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The container runtime to be used",
 				Default:     "docker",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"cpus": {
+			"cpus": &schema.Schema{
 				Type:        schema.TypeInt,
 				Description: "Number of CPUs allocated to the minikube VM (default 2)",
 				Default:     2,
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"disable_driver_mounts": {
+			"disable_driver_mounts": &schema.Schema{
 				Type:        schema.TypeBool,
 				Description: "Disables the filesystem mounts provided by the hypervisors (vboxfs, xhyve-9p)",
 				Default:     true,
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"disk_size": {
+			"disk_size": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "Disk size allocated to the minikube VM (format: <number>[<unit>], where unit = b, k, m or g) (default \"20g\")",
 				Default:     "20g",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"dns_domain": {
+			"dns_domain": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The cluster dns domain name used in the kubernetes cluster (default \"cluster.local\")",
 				Default:     "cluster.local",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"docker_env": {
+			"docker_env": &schema.Schema{
 				Type:        schema.TypeList,
 				Description: "Environment variables to pass to the Docker daemon. (format: key=value)",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"docker_opt": {
+			"docker_opt": &schema.Schema{
 				Type:        schema.TypeList,
 				Description: "Specify arbitrary flags to pass to the Docker daemon. (format: key=value)",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"extra_config": {
+			"extra_config": &schema.Schema{
 				Type: schema.TypeString,
 				Description: `A set of key=value pairs that describe configuration that may be passed to different components.
 The key should be '.' separated, and the first part before the dot is the component to apply the configuration to.
@@ -113,28 +113,28 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 				ForceNew: true,
 				Optional: true,
 			},
-			"feature_gates": {
+			"feature_gates": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "A set of key=value pairs that describe feature gates for alpha/experimental features.",
 				Default:     "",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"host_only_cidr": {
+			"host_only_cidr": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The CIDR to be used for the minikube VM (only supported with Virtualbox driver) (default \"192.168.99.1/24\")",
 				Default:     "192.168.99.1/24",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"hyperv_virtual_switch": {
+			"hyperv_virtual_switch": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The hyperv virtual switch name. Defaults to first found. (only supported with HyperV driver)",
 				Default:     "",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"insecure_registry": {
+			"insecure_registry": &schema.Schema{
 				Type:        schema.TypeList,
 				Description: "Insecure Docker registries to pass to the Docker daemon (default [10.0.0.0/24])",
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -142,21 +142,21 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 				ForceNew: true,
 				Optional: true,
 			},
-			"iso_url": {
+			"iso_url": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "Location of the minikube iso (default \"https://storage.googleapis.com/minikube/iso/minikube-v1.2.0.iso\")",
 				Default:     "https://storage.googleapis.com/minikube/iso/minikube-v1.2.0.iso",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"keep_context": {
+			"keep_context": &schema.Schema{
 				Type:        schema.TypeBool,
 				Description: "This will keep the existing kubectl context and will create a minikube context.",
 				Default:     false,
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"kubernetes_version": {
+			"kubernetes_version": &schema.Schema{
 				Type: schema.TypeString,
 				Description: `The kubernetes version that the minikube VM will use (ex: v1.2.3)
  OR a URI which contains a localkube binary (ex: https://storage.googleapis.com/minikube/k8sReleases/v1.3.0/localkube-linux-amd64) (default "v1.15.0")`,
@@ -164,78 +164,85 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 				ForceNew: true,
 				Optional: true,
 			},
-			"kvm_network": {
+			"kvm_network": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The KVM network name. (only supported with KVM driver) (default \"default\")",
 				Default:     "default",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"memory": {
+			"memory": &schema.Schema{
 				Type:        schema.TypeInt,
 				Description: "Amount of RAM allocated to the minikube VM (default 2048)",
 				Default:     2048,
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"mount": {
+			"mount": &schema.Schema{
 				Type:        schema.TypeBool,
 				Description: "This will start the mount daemon and automatically mount files into minikube",
 				Default:     false,
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"mount_string": {
+			"mount_string": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The argument to pass the minikube mount command on start (default \"/Users:/minikube-host\")",
 				Default:     "/Users:/minikube-host",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"network_plugin": {
+			"network_plugin": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The name of the network plugin",
 				Default:     "",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"registry_mirror": {
+			"registry_mirror": &schema.Schema{
 				Type:        schema.TypeList,
 				Description: "Registry mirrors to pass to the Docker daemon",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"vm_driver": {
+			"scheme": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "HTTP or HTTPS",
+				Default:     "https",
+				ForceNew:    true,
+				Optional:    true,
+			},
+			"vm_driver": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "VM driver is one of: [virtualbox xhyve vmwarefusion hyperkit] (default \"virtualbox\")",
 				Default:     "virtualbox",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"xhyve_disk_driver": {
+			"xhyve_disk_driver": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The disk driver to use [ahci-hd|virtio-blk] (only supported with xhyve driver) (default \"ahci-hd\")",
 				Default:     "ahci-hd",
 				ForceNew:    true,
 				Optional:    true,
 			},
-			"client_certificate": {
+			"client_certificate": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "Base64 encoded public certificate used by clients to authenticate to the cluster endpoint.",
 				Computed:    true,
 			},
-			"client_key": {
+			"client_key": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "Base64 encoded private key used by clients to authenticate to the cluster endpoint.",
 				Computed:    true,
 			},
-			"cluster_ca_certificate": {
+			"cluster_ca_certificate": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "Base64 encoded public certificate that is the root of trust for the cluster.",
 				Computed:    true,
 			},
-			"endpoint": {
+			"endpoint": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "Endpoint that can be used to reach API server",
 				Computed:    true,
@@ -260,7 +267,7 @@ func resourceMinikubeRead(d *schema.ResourceData, meta interface{}) error {
 
 	kubeletSt := state.None.String()
 	apiserverSt := state.None.String()
- 	ks := state.None.String()
+	ks := state.None.String()
 	if hostSt == state.Running.String() {
 		clusterBootstrapper, err := cmd.GetClusterBootstrapper(api, clusterBootstrapper)
 		if err != nil {
@@ -327,17 +334,20 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 	disableDriverMounts := d.Get("disable_driver_mounts").(bool)
 	diskSize := d.Get("disk_size").(string)
 	dnsDomain := d.Get("dns_domain").(string)
-	dockerEnv, ok := d.GetOk("docker_env"); if ! ok {
+	dockerEnv, ok := d.GetOk("docker_env")
+	if !ok {
 		dockerEnv = []string{}
 	}
-	dockerOpt, ok := d.GetOk("docker_opt"); if ! ok {
+	dockerOpt, ok := d.GetOk("docker_opt")
+	if !ok {
 		dockerOpt = []string{}
 	}
 	//extraConfig := d.Get("extra_config").(string)
 	featureGates := d.Get("feature_gates").(string)
 	hostOnlyCIDR := d.Get("host_only_cidr").(string)
 	hypervVirtualSwitch := d.Get("hyperv_virtual_switch").(string)
-	insecureRegistry, ok := d.GetOk("insecure_registry"); if ! ok {
+	insecureRegistry, ok := d.GetOk("insecure_registry")
+	if !ok {
 		insecureRegistry = []string{"10.0.0.0/24"}
 	}
 	isoURL := d.Get("iso_url").(string)
@@ -348,7 +358,8 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 	mount := d.Get("mount").(bool)
 	mountString := d.Get("mount_string").(string)
 	networkPlugin := d.Get("network_plugin").(string)
-	registryMirror, ok := d.GetOk("registry_mirror"); if ! ok {
+	registryMirror, ok := d.GetOk("registry_mirror")
+	if !ok {
 		registryMirror = []string{}
 	}
 	vmDriver := d.Get("vm_driver").(string)
@@ -446,15 +457,15 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	kubernetesConfig := cfg.KubernetesConfig{
-		KubernetesVersion:      selectedKubernetesVersion,
-		NodeIP:                 ip,
-		NodeName:               cfg.GetMachineName(),
-		APIServerName:          apiserverName,
-		DNSDomain:              dnsDomain,
-		FeatureGates:           featureGates,
-		ContainerRuntime:       containerRuntime,
-		NetworkPlugin:          networkPlugin,
-		ServiceCIDR:            pkgutil.DefaultServiceCIDR,
+		KubernetesVersion: selectedKubernetesVersion,
+		NodeIP:            ip,
+		NodeName:          cfg.GetMachineName(),
+		APIServerName:     apiserverName,
+		DNSDomain:         dnsDomain,
+		FeatureGates:      featureGates,
+		ContainerRuntime:  containerRuntime,
+		NetworkPlugin:     networkPlugin,
+		ServiceCIDR:       pkgutil.DefaultServiceCIDR,
 		//ExtraOptions:           extraConfig,
 		ShouldLoadCachedImages: cacheImages,
 	}
