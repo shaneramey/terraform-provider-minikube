@@ -159,8 +159,8 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 			"kubernetes_version": {
 				Type: schema.TypeString,
 				Description: `The kubernetes version that the minikube VM will use (ex: v1.2.3)
- OR a URI which contains a localkube binary (ex: https://storage.googleapis.com/minikube/k8sReleases/v1.3.0/localkube-linux-amd64) (default "v1.14.3")`,
-				Default:  "v1.14.3",
+ OR a URI which contains a localkube binary (ex: https://storage.googleapis.com/minikube/k8sReleases/v1.3.0/localkube-linux-amd64) (default "v1.15.0")`,
+				Default:  "v1.15.0",
 				ForceNew: true,
 				Optional: true,
 			},
@@ -208,7 +208,7 @@ Valid components are: kubelet, apiserver, controller-manager, etcd, proxy, sched
 			},
 			"vm_driver": {
 				Type:        schema.TypeString,
-				Description: "VM driver is one of: [virtualbox xhyve vmwarefusion] (default \"virtualbox\")",
+				Description: "VM driver is one of: [virtualbox xhyve vmwarefusion hyperkit] (default \"virtualbox\")",
 				Default:     "virtualbox",
 				ForceNew:    true,
 				Optional:    true,

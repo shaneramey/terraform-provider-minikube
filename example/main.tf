@@ -1,19 +1,23 @@
 provider "minikube" {
-
 }
 
 resource "minikube" "cluster" {
-//  disk_size = "20g"
+  //  disk_size = "20g"
+  vm_driver          = "virtualbox"
+  kubernetes_version = "v1.15.0"
+  keep_context       = false
+  cache_images       = false
 }
 
 output "client_cert" {
-  value = "${minikube.cluster.client_certificate}"
+  value = minikube.cluster.client_certificate
 }
 
 output "client_key" {
-  value = "${minikube.cluster.client_key}"
+  value = minikube.cluster.client_key
 }
 
 output "ca_cert" {
-  value = "${minikube.cluster.cluster_ca_certificate}"
+  value = minikube.cluster.cluster_ca_certificate
 }
+
