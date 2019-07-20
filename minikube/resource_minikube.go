@@ -416,6 +416,15 @@ func resourceMinikubeCreate(d *schema.ResourceData, meta interface{}) error {
 		DisableDriverMounts: disableDriverMounts,
 	}
 
+	// Write interim configuration to file
+	interimConfig := cfg.Config{
+		MachineConfig: config,
+	}
+
+	if err := saveConfig(interimConfig); err != nil {
+		log.Printf("Error saving interim profile cluster configuration: %v", err)
+	}
+
 	log.Printf("Starting local Kubernetes %s cluster...\n", kubernetesVersion)
 	log.Println("Starting VM...")
 	host, err := cluster.StartHost(api, config)
