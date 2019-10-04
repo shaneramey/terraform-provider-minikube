@@ -4,7 +4,7 @@ GOARCH?=amd64
 BINARY=terraform-provider-minikube_${RELEASE_VERSION}_x4
 LINUX_RELEASE=terraform-provider-minikube_${RELEASE_VERSION}_linux_${GOARCH}
 MAC_RELEASE=terraform-provider-minikube_${RELEASE_VERSION}_darwin_${GOARCH}
-MINIKUBE_VERSION=v0.30.0
+MINIKUBE_VERSION=v1.2.0
 
 default: deps assets_hack linux mac stage
 
@@ -14,7 +14,10 @@ deps:
 assets_hack:
 	chmod -R 777 ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}
 	go get -u github.com/jteeuwen/go-bindata/...
-	go-bindata -nomemcopy -o ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/pkg/minikube/assets/assets.go -pkg assets ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/deploy/addons/...
+	go-bindata -nomemcopy \
+		-prefix "${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/" \
+		-o ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/pkg/minikube/assets/assets.go \
+		-pkg assets ${GOPATH}/pkg/mod/k8s.io/minikube@${MINIKUBE_VERSION}/deploy/addons/...
 
 clean:
 	rm -rf "${RELEASE_DIR}"
@@ -31,6 +34,6 @@ mac:
 	rm "${BINARY}"
 
 stage:
-	mkdir "${RELEASE_DIR}"
+	mkdir -p "${RELEASE_DIR}"
 	mv "${LINUX_RELEASE}.zip" "${RELEASE_DIR}"
 	mv "${MAC_RELEASE}.zip" "${RELEASE_DIR}"
